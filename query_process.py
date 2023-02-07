@@ -2,7 +2,7 @@ from typing import List
 
 import tokenizer
 from documents import DocumentCollection, Document
-from index import Index
+from index import NaiveIndex
 
 
 def process_query(query: str) -> List[str]:
@@ -27,7 +27,7 @@ def format_results(results: List[str], documents: DocumentCollection) -> str:
     return out
 
 
-def query_process(query: str, documents: DocumentCollection, index: Index) -> str:
+def query_process(query: str, documents: DocumentCollection, index: NaiveIndex) -> str:
     processed_query = process_query(query)
     results = index.search(processed_query)
     formatted_results = format_results(results, documents)

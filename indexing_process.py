@@ -2,12 +2,12 @@ import json
 
 from documents import Document, DocumentCollection, TransformedDocument, \
     TransformedDocumentCollection
-from index import Index
-from tokenizer import tokenize
+from index import Index, NaiveIndex
+from tokenizer import Tokenizer, NaiveTokenizer
 
 
 class Source:
-    def read_documents(self):
+    def read_documents(self) -> DocumentCollection:
         pass
 
 
@@ -24,16 +24,14 @@ class WikiSource(Source):
         return doc_collection
 
 
-class IndexCreator:
-    def create_index(self, transformed_documents):
-        index = Index()
-        for doc in transformed_documents.get_all_docs():
-            index.add_document(doc)
-        return index
-
-
 class DocumentTransformer:
-    def __init__(self, tokenizer):
+    def transform_documents(
+            self, document_collection: DocumentCollection) -> TransformedDocumentCollection:
+        pass
+
+
+class TokenizerOnlyDocumentTransformer(DocumentTransformer):
+    def __init__(self, tokenizer: Tokenizer):
         self.tokenizer = tokenizer
 
     def transform_documents(
@@ -48,14 +46,20 @@ class DocumentTransformer:
 
 
 class IndexingProcess:
-    def __init__(self, tokenizer, document_transformer, index_creator):
-        self.tokenizer = tokenizer
+    def __init__(self, document_transformer: DocumentTransformer, index: Index):
         self.document_transformer = document_transformer
-        self.index_creator = index_creator
+        self.index = index
+
+    @staticmethod
+    def create_naive_indexing_process() -> 'IndexingProcess':
+        return IndexingProcess(
+            document_transformer=TokenizerOnlyDocumentTransformer(NaiveTokenizer()),
+            index=NaiveIndex())
 
     def run(self, document_source: Source) -> (DocumentCollection, Index):
         document_collection = document_source.read_documents()
         transformed_documents = self.document_transformer.transform_documents(document_collection)
         # transformed_documents.write(path='')
-        index = self.index_creator.create_index(transformed_documents)
-        return document_collection, index
+        for doc in transformed_documents.get_all_docs():
+            self.index.add_document(doc)
+        return document_collection, self.index
