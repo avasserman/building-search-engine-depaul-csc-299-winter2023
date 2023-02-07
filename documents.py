@@ -17,11 +17,42 @@ class DocumentCollection:
     def get_all_docs(self) -> typing.List[Document]:
         return self.docs
 
-    def get(self, doc_id):
+    def get(self, doc_id) -> typing.Optional[Document]:
         for doc in self.docs:
             if doc.doc_id == doc_id:
                 return doc
         return None
+
+
+class DictDocumentCollection(DocumentCollection):
+    def __init__(self):
+        self.docs = dict()
+
+    def add_document(self, doc: Document):
+        self.docs[doc.doc_id] = doc
+
+    def get_all_docs(self) -> typing.List[Document]:
+        return list(self.docs.values())
+
+    def get(self, doc_id) -> typing.Optional[Document]:
+        return self.docs.get(doc_id)
+
+    def write(self, path: str):
+        json_data = {'docs': [doc._asdict() for doc in self.docs.values()]}
+        with open(path, 'w') as fp:
+            json.dump(obj=json_data, fp=fp)
+
+    @staticmethod
+    def read(path: str) -> 'DictDocumentCollection':
+        out = DictDocumentCollection()
+        with open(path) as fp:
+            collection_dict = json.load(fp)
+
+        doc_records = collection_dict['docs']
+        for record in doc_records:
+            doc = Document(doc_id=record['doc_id'], text=record['text'])
+            out.add_document(doc)
+        return out
 
 
 class TransformedDocument(typing.NamedTuple):

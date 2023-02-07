@@ -11,6 +11,20 @@ class Source:
         pass
 
 
+class LectureTranscriptsSource(Source):
+    DEFAULT_PATH = r'C:\Users\Alex\Documents\DePaul\csc299-winter2023\datasets\lecture_transcripts\lectures_transcripts2-8.json'
+
+    def read_documents(self, data_file_path: str = DEFAULT_PATH) -> DocumentCollection:
+        with open(data_file_path) as fp:
+            doc_records = json.load(fp)
+        doc_collection = DocumentCollection()
+        for record in doc_records:
+            doc = Document(doc_id=f"{record['source_name']}_{record['index']}",
+                           text=record['text'])
+            doc_collection.add_document(doc)
+        return doc_collection
+
+
 class WikiSource(Source):
     DEFAULT_PATH = r'C:\Users\Alex\Documents\DePaul\datasets\wiki_small\wiki_small.json'
 
