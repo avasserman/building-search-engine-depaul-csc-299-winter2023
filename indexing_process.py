@@ -1,7 +1,7 @@
 import json
 
 from documents import Document, DocumentCollection, TransformedDocument, \
-    TransformedDocumentCollection
+    TransformedDocumentCollection, DictDocumentCollection
 from index import Index, NaiveIndex
 from tokenizer import Tokenizer, NaiveTokenizer
 
@@ -17,7 +17,7 @@ class LectureTranscriptsSource(Source):
     def read_documents(self, data_file_path: str = DEFAULT_PATH) -> DocumentCollection:
         with open(data_file_path) as fp:
             doc_records = json.load(fp)
-        doc_collection = DocumentCollection()
+        doc_collection = DictDocumentCollection()
         for record in doc_records:
             doc = Document(doc_id=f"{record['source_name']}_{record['index']}",
                            text=record['text'])
