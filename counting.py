@@ -1,5 +1,6 @@
 import collections
 # import typing
+import math
 import typing
 
 from documents import TransformedDocument, TransformedDocumentCollection
@@ -42,6 +43,18 @@ def document_counts(docs: TransformedDocumentCollection) -> collections.Counter:
     for doc in docs.get_all_docs():
         num_docs.update(collections.Counter(set(doc.tokens)))
     return num_docs
+
+
+def term_frequency(count: int, doc_len: int) -> float:
+    return count / doc_len
+
+
+def inverse_doc_frequency(doc_count: int, collection_size: int) -> float:
+    return math.log(collection_size/doc_count)
+
+
+def tf_idf(tf: float, idf: float) -> float:
+    return tf * idf
 
 
 def doc_tf_idf_scores(doc: TransformedDocument,

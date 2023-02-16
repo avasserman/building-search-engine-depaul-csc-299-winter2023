@@ -25,6 +25,19 @@ class LectureTranscriptsSource(Source):
         return doc_collection
 
 
+class CovidSource(Source):
+    DEFAULT_PATH = r'C:\Users\Alex\Documents\DePaul\datasets\trec-covid\corpus.jsonl'
+
+    def read_documents(self, data_file_path: str = DEFAULT_PATH) -> DocumentCollection:
+        doc_collection = DocumentCollection()
+        with open(data_file_path) as fp:
+            for line in fp:
+                record = json.loads(line)
+                doc = Document(doc_id=record['_id'], text=record['text'])
+                doc_collection.add_document(doc)
+            return doc_collection
+
+
 class WikiSource(Source):
     DEFAULT_PATH = r'C:\Users\Alex\Documents\DePaul\datasets\wiki_small\wiki_small.json'
 
