@@ -29,7 +29,7 @@ class CovidSource(Source):
     DEFAULT_PATH = r'C:\Users\Alex\Documents\DePaul\datasets\trec-covid\corpus.jsonl'
 
     def read_documents(self, data_file_path: str = DEFAULT_PATH) -> DocumentCollection:
-        doc_collection = DocumentCollection()
+        doc_collection = DictDocumentCollection()
         with open(data_file_path) as fp:
             for line in fp:
                 record = json.loads(line)
@@ -86,7 +86,7 @@ class IndexingProcess:
     def run(self, document_source: Source) -> (DocumentCollection, Index):
         document_collection = document_source.read_documents()
         transformed_documents = self.document_transformer.transform_documents(document_collection)
-        # transformed_documents.write(path='')
+        # transformed_documents.write(path=r'')
         for doc in transformed_documents.get_all_docs():
             self.index.add_document(doc)
         return document_collection, self.index
