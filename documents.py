@@ -23,6 +23,23 @@ class DocumentCollection:
                 return doc
         return None
 
+    def write(self, path: str):
+        json_data = {'docs': [doc._asdict() for doc in self.docs]}
+        with open(path, 'w') as fp:
+            json.dump(obj=json_data, fp=fp)
+
+    @staticmethod
+    def read(path: str) -> 'DocumentCollection':
+        out = DocumentCollection()
+        with open(path) as fp:
+            collection_dict = json.load(fp)
+
+        doc_records = collection_dict['docs']
+        for record in doc_records:
+            doc = Document(doc_id=record['doc_id'], text=record['text'])
+            out.add_document(doc)
+        return out
+
 
 class DictDocumentCollection(DocumentCollection):
     def __init__(self):
