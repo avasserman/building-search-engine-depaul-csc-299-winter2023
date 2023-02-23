@@ -26,9 +26,11 @@ class EvalEntry(typing.NamedTuple):
     score: int
 
 
-def read_eval_data(path: str):
+def read_eval_data(
+        path: str = r'C:\Users\Alex\Documents\DePaul\datasets\trec-covid\qrels\test.tsv'):
     out = []
     with open(path) as fp:
+        header = fp.readline()
         for line in fp:
             record = line.split()
             out.append(EvalEntry(
@@ -57,7 +59,7 @@ class TotalScoreScorer(ResultScorer):
 
 
 class TopNScorer(ResultScorer):
-    def __init__(self, n :int = 10):
+    def __init__(self, n: int = 10):
         self.n = n
 
     def score_results(self, result_eval_entries: typing.List[EvalEntry]) -> float:
