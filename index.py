@@ -8,10 +8,13 @@ from documents import TransformedDocument
 
 class Index:
     def add_document(self, doc: TransformedDocument):
-        pass
+        raise NotImplementedError
 
     def search(self, query: typing.List[str]) -> typing.List[str]:
-        pass
+        raise NotImplementedError
+
+    def write(self, path: str):
+        raise NotImplementedError
 
 
 class NaiveIndex(Index):
@@ -54,7 +57,7 @@ class TfIdfIndex(Index):
             for doc_id, term_freqs in self.doc_id_to_term_frequencies.items():
                 record = {
                     'doc_id': doc_id,
-                    'tfs': [{'term': term, 'tf': tf} for term, tf in term_freqs]
+                    'tfs': [{'term': term, 'tf': tf} for term, tf in term_freqs.items()]
                 }
                 fp.write(json.dumps(record) + '\n')
 
