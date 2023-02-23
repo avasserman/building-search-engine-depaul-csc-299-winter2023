@@ -1,5 +1,6 @@
 from typing import List
 
+import tokenizer
 from documents import DocumentCollection, Document
 from index import Index
 from tokenizer import Tokenizer, NaiveTokenizer
@@ -26,10 +27,10 @@ class ResultFormatter:
         :param results: List of doc_ids
         :return: A single string presented to the user.
         """
-        pass
+        raise NotImplemented
 
 
-class NaiveResultFormatter:
+class NaiveResultFormatter(ResultFormatter):
     def __init__(self, document_collection: DocumentCollection):
         self.document_collection = document_collection
 
@@ -52,8 +53,17 @@ class QueryProcess:
         self.query_transformer = query_transformer
         self.result_formatter = result_formatter
 
+    @staticmethod
+    def create_naive_query_process(documents: DocumentCollection, index: Index) -> 'QueryProcess':
+        return QueryProcess(
+            index=index,
+            query_transformer=TokenizerOnlyQueryTransformer(tokenizer=tokenizer.NaiveTokenizer()),
+            result_formatter=NaiveResultFormatter(documents)
+        )
+
     def run(self, query: str) -> str:
         processed_query = self.query_transformer.process_query(query)
         results = self.index.search(processed_query)
         formatted_results = self.result_formatter.format_results(results)
         return formatted_results
+
