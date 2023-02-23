@@ -1,8 +1,9 @@
 import json
+from pathlib import Path
 
 from documents import Document, DocumentCollection, TransformedDocument, \
     TransformedDocumentCollection, DictDocumentCollection
-from index import Index, NaiveIndex
+from index import Index, NaiveIndex, TfIdfIndex
 from tokenizer import Tokenizer, NaiveTokenizer
 
 
@@ -76,6 +77,8 @@ class IndexingProcess:
     def __init__(self, document_transformer: DocumentTransformer, index: Index):
         self.document_transformer = document_transformer
         self.index = index
+        self.out_dir = Path(
+            r'C:\Users\Alex\Documents\DePaul\datasets\indexing_process_out')
 
     @staticmethod
     def create_naive_indexing_process() -> 'IndexingProcess':
@@ -83,10 +86,20 @@ class IndexingProcess:
             document_transformer=TokenizerOnlyDocumentTransformer(NaiveTokenizer()),
             index=NaiveIndex())
 
+    @staticmethod
+    def create_tf_idf_indexing_process() -> 'IndexingProcess':
+        return IndexingProcess(
+            document_transformer=TokenizerOnlyDocumentTransformer(NaiveTokenizer()),
+            index=TfIdfIndex())
+
     def run(self, document_source: Source) -> (DocumentCollection, Index):
         document_collection = document_source.read_documents()
+        # document_collection.write(str(self.out_dir / Path('doc_collection.json')))
         transformed_documents = self.document_transformer.transform_documents(document_collection)
-        # transformed_documents.write(path=r'')
+        transformed_documents.write(
+            str(self.out_dir / Path('transformed_doc_collection.json')))
         for doc in transformed_documents.get_all_docs():
             self.index.add_document(doc)
+        # self.index.write(
+        #     str(self.out_dir / Path('index.json')))
         return document_collection, self.index
