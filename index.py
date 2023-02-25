@@ -16,6 +16,10 @@ class Index:
     def write(self, path: str):
         raise NotImplementedError
 
+    @staticmethod
+    def read(path: str):
+        raise NotImplementedError
+
 
 class NaiveIndex(Index):
     def __init__(self):
@@ -62,7 +66,7 @@ class TfIdfIndex(Index):
                 fp.write(json.dumps(record) + '\n')
 
     @staticmethod
-    def read(self, path: str) -> 'TfIdfIndex':
+    def read(path: str) -> 'TfIdfIndex':
         index = TfIdfIndex()
         with open(path) as fp:
             for line in fp:
@@ -119,7 +123,7 @@ class DocInfo(typing.NamedTuple):
     # positions: typing.List[int]
 
 
-class InvertedTfIdfIndex(TfIdfIndex):
+class InvertedTfIdfIndex(Index):
     def __init__(self):
         self.number_of_documents = 0
         self.doc_count = Counter()
@@ -141,15 +145,16 @@ class InvertedTfIdfIndex(TfIdfIndex):
         :return: List of doc_ids for matching documents in correct order.
         """
         doc_ids_to_scores = defaultdict(float)
+        matches = None
         for term in query:
             doc_info_list = self.term_to_doc_info[term]
+            matches = {di.doc_id for di in doc_info_list
+                       if matches is None or di.doc_id in matches}
             for doc_info in doc_info_list:
-                doc_ids_to_scores[doc_info.doc_id] += self.score(
-                    doc_info.tf, self.doc_count[term], self.number_of_documents)
-
-
-        # for doc_id, term_freqs in self.doc_id_to_term_frequencies.items():
-        #     score = self.compute_score(query, term_freqs)
-        #     if score is not None:
-        #         doc_ids_to_scores[doc_id] = score
-        return sorted(doc_ids_to_scores.keys(), key=doc_ids_to_scores.get, reverse=True)
+                if doc_info.doc_id not in matches:
+                    continue
+                idf = counting.inverse_doc_frequency(
+                    doc_count=self.doc_count[term],
+                    collection_size=self.number_of_documents)
+                doc_ids_to_scores[doc_info.doc_id] += counting.tf_idf(doc_info.tf, idf)
+        return sorted(matches, key=doc_ids_to_scores.get, reverse=True)
