@@ -1,6 +1,6 @@
 import json
 import typing
-from collections import Counter
+from collections import Counter, defaultdict
 
 import counting
 from documents import TransformedDocument
@@ -110,4 +110,46 @@ class TfIdfIndex(Index):
             score = self.compute_score(query, term_freqs)
             if score is not None:
                 doc_ids_to_scores[doc_id] = score
+        return sorted(doc_ids_to_scores.keys(), key=doc_ids_to_scores.get, reverse=True)
+
+
+class DocInfo(typing.NamedTuple):
+    doc_id: str
+    tf: float
+    # positions: typing.List[int]
+
+
+class InvertedTfIdfIndex(TfIdfIndex):
+    def __init__(self):
+        self.number_of_documents = 0
+        self.doc_count = Counter()
+        self.term_to_doc_info: typing.Dict[str, typing.List[DocInfo]] = defaultdict(list)
+
+    def add_document(self, doc: TransformedDocument):
+        self.number_of_documents += 1
+        self.doc_count.update(set(doc.tokens))
+        term_counts = counting.count_words(doc)
+        for term, count in term_counts.items():
+            self.term_to_doc_info[term].append(
+                DocInfo(doc_id=doc.doc_id,
+                        tf=counting.term_frequency(count, len(doc.tokens))))
+
+    def search(self, query: typing.List[str]) -> typing.List[str]:
+        """
+        Does search using the index.
+        :param query: List of query terms.
+        :return: List of doc_ids for matching documents in correct order.
+        """
+        doc_ids_to_scores = defaultdict(float)
+        for term in query:
+            doc_info_list = self.term_to_doc_info[term]
+            for doc_info in doc_info_list:
+                doc_ids_to_scores[doc_info.doc_id] += self.score(
+                    doc_info.tf, self.doc_count[term], self.number_of_documents)
+
+
+        # for doc_id, term_freqs in self.doc_id_to_term_frequencies.items():
+        #     score = self.compute_score(query, term_freqs)
+        #     if score is not None:
+        #         doc_ids_to_scores[doc_id] = score
         return sorted(doc_ids_to_scores.keys(), key=doc_ids_to_scores.get, reverse=True)
